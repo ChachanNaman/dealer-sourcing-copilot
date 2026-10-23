@@ -22,9 +22,12 @@ from app.schemas import (
 
 app = FastAPI(title="Dealer Sourcing Co-pilot API")
 
+# Allow the Vercel production domain and every preview deploy (*.vercel.app,
+# which changes each push) plus local dev. No credentials are used, so this is
+# an origin allowlist only.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )

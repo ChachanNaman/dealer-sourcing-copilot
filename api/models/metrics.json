@@ -1,0 +1,8 @@
+{
+  "price_mae_rupees": 19121.0,
+  "price_mae_lakh": 0.1912,
+  "price_mape_pct": 3.88,
+  "dts_mae_days": 4.6,
+  "n_train": 8000,
+  "n_test": 2000
+}

@@ -1,0 +1,18 @@
+# Render Blueprint for the FastAPI pricing service.
+# The parquet data and joblib models are committed, so the build only installs
+# pinned deps (uv.lock) — no train step, which keeps the live numbers identical
+# to the README and keeps build memory low. Start binds to Render's $PORT.
+services:
+  - type: web
+    name: dealer-copilot-api
+    runtime: python
+    plan: free
+    rootDir: api
+    buildCommand: "pip install uv && uv sync --frozen --no-dev"
+    startCommand: "uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: GROQ_API_KEY
+        sync: false # set in the Render dashboard, never committed

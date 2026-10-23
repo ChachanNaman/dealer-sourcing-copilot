@@ -1,8 +1,11 @@
-data/
-models/
 .env
 node_modules/
 __pycache__/
 .venv/
 dist/
 .DS_Store
+
+# NOTE: api/data/*.parquet and api/models/* are intentionally committed (not
+# ignored) so the deployed API and the README reference byte-identical data and
+# models — see README "Deploy". Regenerate with `python -m app.generate_data`
+# and `python -m app.train` only if you also update models/metrics.json + README.
