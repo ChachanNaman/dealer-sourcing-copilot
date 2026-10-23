@@ -42,6 +42,28 @@ MODELS: dict[str, tuple[str, float, float]] = {
     "Toyota Urban Cruiser": ("suv", 11.0, 0.55),
 }
 
+# Indian launch year per model — the generated year is floored at this so we
+# never produce an impossible car (e.g. a 2016 XUV300; it launched in 2019).
+LAUNCH_YEAR = {
+    "Maruti Alto": 2000,
+    "Maruti Swift": 2005,
+    "Maruti Baleno": 2015,
+    "Hyundai Grand i10": 2013,
+    "Hyundai i20": 2008,
+    "Tata Tiago": 2016,
+    "Maruti Dzire": 2008,
+    "Honda Amaze": 2013,
+    "Honda City": 1998,
+    "Hyundai Verna": 2006,
+    "Skoda Rapid": 2011,
+    "Hyundai Creta": 2015,
+    "Kia Seltos": 2019,
+    "Tata Nexon": 2017,
+    "Mahindra XUV300": 2019,
+    "Maruti Brezza": 2016,
+    "Toyota Urban Cruiser": 2020,
+}
+
 CITY_MULT = {
     "Mumbai": 1.05,
     "Bengaluru": 1.05,
@@ -57,15 +79,28 @@ GRADE_DTS_MULT = {"A": 0.85, "B": 1.00, "C": 1.30}
 
 MODEL_NAMES = list(MODELS.keys())
 
+# Long-tailed model mix for sold_history: weight by popularity^3 so a Swift or
+# Creta has hundreds of comparable sales and a Skoda Rapid almost none. This is
+# how real auction history looks, and it makes the confidence gate fire
+# naturally on thin models/variants rather than on a handful of outliers.
+_SOLD_POP_POWER = 6.0
+_sold_weights = np.array([MODELS[m][2] ** _SOLD_POP_POWER for m in MODEL_NAMES])
+SOLD_MODEL_PROBS = _sold_weights / _sold_weights.sum()
 
-def _sample_rows(rng: np.random.Generator, n: int) -> pd.DataFrame:
-    model = rng.choice(MODEL_NAMES, size=n)
+
+def _sample_rows(
+    rng: np.random.Generator, n: int, model_probs: np.ndarray | None = None
+) -> pd.DataFrame:
+    model = rng.choice(MODEL_NAMES, size=n, p=model_probs)
     segment = np.array([MODELS[m][0] for m in model])
     base_price = np.array([MODELS[m][1] for m in model])
     popularity_mean = np.array([MODELS[m][2] for m in model])
 
-    # Floor age at 1 — a used auction has no current-year cars.
+    # Floor age at 1 — a used auction has no current-year cars — then clamp per
+    # model so the resulting year never predates the model's launch.
     age = rng.integers(1, 11, size=n)
+    max_age = np.array([CURRENT_YEAR - LAUNCH_YEAR[m] for m in model])
+    age = np.minimum(age, max_age)
     year = CURRENT_YEAR - age
 
     # Realistic odometer: ~8,000–15,000 km per year of age with noise, floored
@@ -160,7 +195,9 @@ def generate_inventory(rng: np.random.Generator) -> pd.DataFrame:
 
 
 def generate_sold(rng: np.random.Generator) -> pd.DataFrame:
-    return _sample_rows(rng, N_SOLD)
+    # Long-tailed by model so comparables are plentiful for popular models and
+    # genuinely thin for rare ones.
+    return _sample_rows(rng, N_SOLD, model_probs=SOLD_MODEL_PROBS)
 
 
 def _sanity_report(inventory: pd.DataFrame, sold: pd.DataFrame) -> None:

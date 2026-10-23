@@ -17,6 +17,10 @@ const EXAMPLE_CHIPS = [
   "diesel SUVs under 15L that I can flip in 3 weeks",
   "Honda City or Hyundai Verna sedans in Bengaluru",
   "automatic SUVs under 16 lakh in Mumbai",
+  // Surfaces low-confidence refusal cards (thin-data sedans like the Skoda
+  // Rapid in a small market) alongside priced results — the honesty screen,
+  // one click away for a demo.
+  "sedans under 10 lakh in Nashik",
 ];
 
 interface SearchBarProps {
