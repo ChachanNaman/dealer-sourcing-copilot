@@ -13,15 +13,25 @@ JSON before it ever reaches pydantic.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 from app.schemas import Filters
 
+# Load api/.env explicitly so this works regardless of the server's or the
+# eval script's current working directory.
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+
+logger = logging.getLogger(__name__)
+
 TIMEOUT_S = 8.0
-ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
-OPENAI_MODEL = "gpt-4o-mini"
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+GROQ_MODEL = "openai/gpt-oss-120b"  # llama-3.3-70b-versatile was retired; closest current large instruct model with json_mode support
 
 ALLOWED_PRICE_KEYS = {"max_price_lakh", "min_price_lakh"}
 _PRICE_PATTERN = re.compile(r"price|bid|valuat|worth|\bcost\b", re.IGNORECASE)
@@ -45,8 +55,10 @@ RULES
 - Any field not stated -> null. Do not invent values.
 - "flip in N weeks" / "move fast" -> max_days_to_sell (weeks x 7).
 - Lakh is the unit. "5L", "5 lakh", "500000" all -> 5.0
-- If the request is too ambiguous to search (no budget AND no model AND
-  no city), set clarification_needed=true and ask ONE short question.
+- Count how many fields above are non-null/non-empty (models counts as one
+  field if the list is non-empty). If fewer than 2, the request is too vague
+  to search — set clarification_needed=true and ask ONE short question.
+  Otherwise leave it false.
 
 SCHEMA
 {schema}
@@ -81,38 +93,23 @@ def _clean_json_text(text: str) -> str:
     return text.strip()
 
 
-def _call_anthropic(prompt: str, api_key: str) -> str:
-    from anthropic import Anthropic
-
-    client = Anthropic(api_key=api_key)
-    msg = client.messages.create(
-        model=ANTHROPIC_MODEL,
-        max_tokens=500,
-        timeout=TIMEOUT_S,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return msg.content[0].text
-
-
-def _call_openai(prompt: str, api_key: str) -> str:
+def _call_groq(prompt: str, api_key: str) -> str:
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key, timeout=TIMEOUT_S)
+    client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL, timeout=TIMEOUT_S)
     resp = client.chat.completions.create(
-        model=OPENAI_MODEL,
+        model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        response_format={"type": "json_object"},
     )
     return resp.choices[0].message.content or ""
 
 
 def _call_llm(prompt: str) -> str:
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY")
-    openai_key = os.getenv("OPENAI_API_KEY")
-    if anthropic_key:
-        return _call_anthropic(prompt, anthropic_key)
-    if openai_key:
-        return _call_openai(prompt, openai_key)
+    groq_key = os.getenv("GROQ_API_KEY")
+    if groq_key:
+        return _call_groq(prompt, groq_key)
     raise RuntimeError("no LLM API key configured")
 
 
@@ -179,7 +176,15 @@ def keyword_fallback(query: str) -> Filters:
 
     models = [m for m in MODEL_NAMES if m.lower() in q]
 
-    clarification_needed = not (max_price_lakh or min_price_lakh or models or city)
+    meaningful_count = sum(
+        1
+        for v in [
+            body_type, max_price_lakh, min_price_lakh, max_km, min_year,
+            city, fuel, transmission, grade_min, max_days_to_sell,
+        ]
+        if v is not None
+    ) + (1 if models else 0)
+    clarification_needed = meaningful_count < 2
     clarification_question = (
         "Could you share a budget, a city, or a model you're interested in?"
         if clarification_needed
@@ -204,7 +209,7 @@ def keyword_fallback(query: str) -> Filters:
 
 
 def parse_intent(query: str) -> ParseResult:
-    if not os.getenv("ANTHROPIC_API_KEY") and not os.getenv("OPENAI_API_KEY"):
+    if not os.getenv("GROQ_API_KEY"):
         return ParseResult(
             filters=keyword_fallback(query),
             raw_llm_output=None,
@@ -245,6 +250,7 @@ def parse_intent(query: str) -> ParseResult:
             )
         except Exception as e:  # noqa: BLE001 — any LLM/network/parse failure falls back, never crashes
             last_error = str(e)
+            logger.warning("intent parse attempt %d failed for query %r: %s", attempt, query, e)
             continue
 
     fallback = keyword_fallback(query)

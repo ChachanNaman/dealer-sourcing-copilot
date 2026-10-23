@@ -111,7 +111,7 @@ As a dealer, I am told when the system cannot price a car confidently.
 **US6 — Ask rather than assume**
 As a dealer, a vague query gets a question, not a wrong answer.
 *Acceptance:*
-- A query with no budget AND no model AND no city sets `clarification_needed: true`
+- A query from which fewer than 2 filter fields can be extracted sets `clarification_needed: true`
 - Exactly one short question is returned; no results are shown
 - The question appears in the UI as a prompt the user can answer inline
 
@@ -262,8 +262,10 @@ RULES
 - Any field not stated -> null. Do not invent values.
 - "flip in N weeks" / "move fast" -> max_days_to_sell (weeks x 7).
 - Lakh is the unit. "5L", "5 lakh", "500000" all -> 5.0
-- If the request is too ambiguous to search (no budget AND no model AND
-  no city), set clarification_needed=true and ask ONE short question.
+- Count how many fields above are non-null/non-empty (models counts as one
+  field if the list is non-empty). If fewer than 2, the request is too vague
+  to search — set clarification_needed=true and ask ONE short question.
+  Otherwise leave it false.
 
 SCHEMA
 {schema}
