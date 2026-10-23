@@ -141,12 +141,25 @@ def _extract_model_candidates(q: str) -> list[str]:
 def _call_groq(prompt: str, api_key: str) -> str:
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key, base_url=GROQ_BASE_URL, timeout=TIMEOUT_S)
+    # max_retries=0: the SDK otherwise retries timeouts/429s internally (up to 2×
+    # with backoff), which stacks on top of our own retry and can block the
+    # single Render worker for 40s+. With retries off, TIMEOUT_S is a true wall
+    # clock and a slow call falls back to keyword parsing fast.
+    client = OpenAI(
+        api_key=api_key,
+        base_url=GROQ_BASE_URL,
+        timeout=TIMEOUT_S,
+        max_retries=0,
+    )
     resp = client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=0,
+        max_tokens=800,
         response_format={"type": "json_object"},
+        # gpt-oss-120b is a reasoning model; filter extraction needs none, and
+        # low effort keeps latency down so the call returns well inside TIMEOUT_S.
+        extra_body={"reasoning_effort": "low"},
     )
     return resp.choices[0].message.content or ""
 
