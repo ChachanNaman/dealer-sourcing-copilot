@@ -64,11 +64,18 @@ def _sample_rows(rng: np.random.Generator, n: int) -> pd.DataFrame:
     base_price = np.array([MODELS[m][1] for m in model])
     popularity_mean = np.array([MODELS[m][2] for m in model])
 
-    age = rng.integers(0, 11, size=n)
+    # Floor age at 1 — a used auction has no current-year cars.
+    age = rng.integers(1, 11, size=n)
     year = CURRENT_YEAR - age
 
-    avg_km_per_year = rng.normal(12_000, 2_500, size=n).clip(4_000, 22_000)
-    km = (age * avg_km_per_year * rng.normal(1.0, 0.15, size=n)).clip(500, 250_000).astype(int)
+    # Realistic odometer: ~8,000–15,000 km per year of age with noise, floored
+    # at ~8,000 so even a 1-year-old car reads like a real used car.
+    km_per_year = rng.uniform(8_000, 15_000, size=n)
+    km = (
+        (age * km_per_year * rng.normal(1.0, 0.12, size=n))
+        .clip(8_000, 250_000)
+        .astype(int)
+    )
 
     owners = np.clip(
         1 + rng.poisson(lam=age / 6.0, size=n) + (rng.random(n) < 0.05).astype(int),
@@ -139,8 +146,13 @@ def _sample_rows(rng: np.random.Generator, n: int) -> pd.DataFrame:
 
 def generate_inventory(rng: np.random.Generator) -> pd.DataFrame:
     df = _sample_rows(rng, N_INVENTORY)
-    # reserve_price: auction floor, a noisy fraction of the "true" retail value
-    reserve_mult = rng.normal(0.80, 0.07, size=len(df)).clip(0.55, 0.98)
+    # reserve_price is a PROPORTION of each car's own fair value, not an absolute
+    # offset — so the reserve-to-value gap stays sensible at every price point
+    # (an expensive car can no longer land a two-lakh headroom). 80–95% of fair
+    # value with light multiplicative noise.
+    reserve_mult = (rng.uniform(0.80, 0.95, size=len(df)) * rng.normal(1.0, 0.02, size=len(df))).clip(
+        0.78, 0.97
+    )
     df["reserve_price"] = (df["retail_price"] * reserve_mult).round(3)
     df = df.drop(columns=["retail_price", "days_to_sell"])
     df.insert(0, "listing_id", [f"L{100000 + i}" for i in range(len(df))])

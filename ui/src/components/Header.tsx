@@ -10,12 +10,16 @@ export function Header({ onOpenEconomics }: { onOpenEconomics: () => void }) {
   return (
     <header className="sticky top-0 z-40 border-b border-[hsl(var(--border))] bg-[hsl(var(--background)/0.85)] backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-2">
-            <Circle className="h-6 w-6 text-[hsl(var(--primary))]" strokeWidth={2.5} />
-            <span className="text-lg font-semibold tracking-tight">Dealer Co-pilot</span>
+            <Circle className="h-5 w-5 shrink-0 text-[hsl(var(--primary))]" strokeWidth={2.5} />
+            <span className="whitespace-nowrap text-base font-semibold tracking-tight sm:text-lg">
+              Dealer Co-pilot
+            </span>
           </div>
-          <Badge variant="neutral" className="hidden sm:inline-flex">
+          {/* Honesty marker — must show at every breakpoint; the phone is the
+              first surface this gets opened on. */}
+          <Badge variant="neutral" className="shrink-0 whitespace-nowrap">
             synthetic data
           </Badge>
         </div>

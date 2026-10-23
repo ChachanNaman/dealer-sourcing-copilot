@@ -16,6 +16,10 @@ VELOCITY_WEIGHT = 0.3
 CONFIDENCE_WEIGHT = 0.2
 CONF_SCORE = {"high": 1.0, "medium": 0.6, "low": 0.0}
 
+# Show only the best handful — a 69-card wall buries the cards that matter.
+# Everything past this is still counted in the skipped totals upstream.
+MAX_RESULTS = 20
+
 
 def _normalize(values: list[float]) -> list[float]:
     if not values:
@@ -48,4 +52,4 @@ def rank(candidates: list[Priced]) -> list[Priced]:
         for c, nm, nv in zip(eligible, norm_margin, norm_velocity)
     ]
     scored.sort(key=lambda pair: pair[0], reverse=True)
-    return [c for _, c in scored]
+    return [c for _, c in scored[:MAX_RESULTS]]
