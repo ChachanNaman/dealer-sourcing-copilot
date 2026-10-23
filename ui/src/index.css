@@ -204,4 +204,80 @@
   .dc-slider:focus-visible::-webkit-slider-thumb {
     box-shadow: 0 0 0 3px hsl(var(--ring) / 0.4);
   }
+
+  /* BorderBeam (rank #1 only). A conic highlight rotates around a border-width
+     ring; the mask punches out the interior so only the border glows. */
+  .dc-border-beam {
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--beam-angle, 0deg),
+      transparent 0deg,
+      transparent 300deg,
+      hsl(var(--primary)) 345deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: dc-beam-spin 4s linear infinite;
+  }
+  @property --beam-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+  @keyframes dc-beam-spin {
+    to {
+      --beam-angle: 360deg;
+    }
+  }
+
+  /* Aurora — two slow-drifting, low-contrast blue blobs behind the search bar. */
+  .dc-aurora {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(60px);
+    opacity: 0.28;
+    top: 50%;
+  }
+  .dc-aurora-a {
+    width: 320px;
+    height: 230px;
+    left: 1%;
+    margin-top: -115px;
+    background: hsl(var(--primary));
+    animation: dc-aurora-a 18s ease-in-out infinite alternate;
+  }
+  .dc-aurora-b {
+    width: 300px;
+    height: 220px;
+    right: 1%;
+    margin-top: -110px;
+    background: hsl(var(--primary) / 0.65);
+    animation: dc-aurora-b 22s ease-in-out infinite alternate;
+  }
+  @keyframes dc-aurora-a {
+    to {
+      transform: translate3d(50px, 10px, 0) scale(1.12);
+    }
+  }
+  @keyframes dc-aurora-b {
+    to {
+      transform: translate3d(-44px, -10px, 0) scale(1.1);
+    }
+  }
+
+  /* Safety net: even if a component forgets the hook, kill all motion here. */
+  @media (prefers-reduced-motion: reduce) {
+    .dc-border-beam,
+    .dc-aurora-a,
+    .dc-aurora-b {
+      animation: none !important;
+    }
+    .dc-aurora {
+      display: none;
+    }
+  }
 }

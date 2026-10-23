@@ -1,5 +1,7 @@
+import { motion } from "motion/react";
 import type { Result } from "@/lib/api";
 import { lakh } from "@/lib/format";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { Comparables } from "@/components/Comparables";
 
 // The "why this number" waterfall (DESIGN.md §5.6), expanding in place. The
@@ -7,6 +9,7 @@ import { Comparables } from "@/components/Comparables";
 // calculator. Motion (rows animating in) is added in Phase 8; this is the
 // static, correct version.
 export function WhyPanel({ result }: { result: Result }) {
+  const reduced = useReducedMotion();
   const b = result.breakdown;
   if (!b || result.max_bid == null) return null;
 
@@ -30,22 +33,42 @@ export function WhyPanel({ result }: { result: Result }) {
     { label: "Your target margin", value: margin },
   ];
 
-  return (
-    <div className="mt-4 rounded-[calc(var(--radius)/1.6)] border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-4">
-      <dl className="flex flex-col gap-2 text-sm">
-        <Row label="Predicted retail" value={lakh(predicted)} />
-        {deductions.map((row) => (
-          <Row key={row.label} label={row.label} value={`−${lakh(row.value)}`} muted />
-        ))}
-        <div className="my-1 border-t border-[hsl(var(--border))]" />
-        <div className="tabular flex items-center justify-between text-base font-semibold">
-          <dt>Max bid</dt>
-          <dd>{lakh(maxBid)}</dd>
-        </div>
-      </dl>
+  // beui-style drawer preset: height + fade expand (DESIGN.md §6), 260ms.
+  const rows = [
+    { label: "Predicted retail", value: lakh(predicted), muted: false },
+    ...deductions.map((row) => ({ label: row.label, value: `−${lakh(row.value)}`, muted: true })),
+  ];
 
-      <Comparables comparables={result.comparables} />
-    </div>
+  return (
+    <motion.div
+      initial={reduced ? false : { height: 0, opacity: 0 }}
+      animate={reduced ? {} : { height: "auto", opacity: 1 }}
+      exit={reduced ? {} : { height: 0, opacity: 0 }}
+      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+      className="overflow-hidden"
+    >
+      <div className="mt-4 rounded-[calc(var(--radius)/1.6)] border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-4">
+        <dl className="flex flex-col gap-2 text-sm">
+          {rows.map((row, i) => (
+            <motion.div
+              key={row.label}
+              initial={reduced ? false : { opacity: 0, y: 4 }}
+              animate={reduced ? {} : { opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, delay: reduced ? 0 : i * 0.06, ease: "easeOut" }}
+            >
+              <Row label={row.label} value={row.value} muted={row.muted} />
+            </motion.div>
+          ))}
+          <div className="my-1 border-t border-[hsl(var(--border))]" />
+          <div className="tabular flex items-center justify-between text-base font-semibold">
+            <dt>Max bid</dt>
+            <dd>{lakh(maxBid)}</dd>
+          </div>
+        </dl>
+
+        <Comparables comparables={result.comparables} />
+      </div>
+    </motion.div>
   );
 }
 

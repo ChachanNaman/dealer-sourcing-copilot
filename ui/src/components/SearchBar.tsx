@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -72,8 +72,11 @@ export function SearchBar({ onSubmit, loading }: SearchBarProps) {
           aria-label="Describe what you want to source"
           className="h-14 w-full min-w-0 bg-transparent text-base text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none"
         />
-        <Button type="submit" size="md" disabled={loading} className="shrink-0">
-          {loading ? "Searching…" : "Search"}
+        {/* Icon-only on mobile so a long typed query stays readable; full
+            label on sm+. */}
+        <Button type="submit" size="md" disabled={loading} className="shrink-0 px-3 sm:px-4">
+          <span className="hidden sm:inline">{loading ? "Searching…" : "Search"}</span>
+          <ArrowRight className="h-5 w-5 sm:hidden" />
         </Button>
       </form>
 

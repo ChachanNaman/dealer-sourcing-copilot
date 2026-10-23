@@ -1,8 +1,11 @@
+import { AnimatePresence } from "motion/react";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import type { Result } from "@/lib/api";
 import { lakh, pct, rupeeFromLakh } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { BorderBeam } from "@/components/ui/border-beam";
+import { NumberTicker } from "@/components/ui/number-ticker";
 import { WhyPanel } from "@/components/WhyPanel";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +24,8 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
   const positiveHeadroom = (result.headroom ?? 0) > 0;
 
   return (
-    <article className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-soft)]">
+    <article className="relative rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-soft)]">
+      {rank === 1 && <BorderBeam />}
       {/* top row: rank + title + confidence */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -43,8 +47,14 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
         <div className="text-xs font-medium uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
           Max bid
         </div>
-        <div className="tabular mt-1 min-w-[6ch] text-[2.5rem] font-semibold leading-none text-[hsl(var(--foreground))]">
-          {result.max_bid != null ? lakh(result.max_bid) : "—"}
+        {/* min-width reserves the figure's space so an economics re-compute
+            (₹4.94L → ₹5.05L) never shifts layout. */}
+        <div className="mt-1 inline-block min-w-[5ch] text-[2.5rem] font-semibold leading-none text-[hsl(var(--foreground))]">
+          {result.max_bid != null ? (
+            <NumberTicker value={result.max_bid} format={lakh} />
+          ) : (
+            "—"
+          )}
         </div>
         <div className="tabular mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-[hsl(var(--muted-foreground))]">
           <span>reserve {lakh(result.reserve_price)}</span>
@@ -58,8 +68,10 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
                   : "text-[hsl(var(--muted-foreground))]",
               )}
             >
-              headroom {positiveHeadroom ? "+" : ""}
-              {rupeeFromLakh(result.headroom)}
+              {/* lakh (not rupee) so this row never mixes units — it sits
+                  beside the lakh reserve and under the lakh max bid (DESIGN §3). */}
+              headroom {positiveHeadroom ? "+" : "−"}
+              {lakh(Math.abs(result.headroom))}
             </span>
           )}
         </div>
@@ -71,8 +83,8 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
         </p>
       )}
 
-      {/* stat row */}
-      <div className="mt-5 grid grid-cols-3 gap-2">
+      {/* stat row — 2+1 wrap under 640px, 3-up above (DESIGN §7) */}
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <Stat
           label="margin"
           value={result.expected_margin != null ? rupeeFromLakh(result.expected_margin) : "—"}
@@ -99,7 +111,9 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
         </Button>
       </div>
 
-      {showWhy && <WhyPanel result={result} />}
+      <AnimatePresence initial={false}>
+        {showWhy && <WhyPanel result={result} />}
+      </AnimatePresence>
     </article>
   );
 }

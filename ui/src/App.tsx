@@ -10,6 +10,8 @@ import {
 } from "@/lib/api";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
+import { AuroraBackground } from "@/components/ui/aurora-background";
+import { BlurFade } from "@/components/ui/blur-fade";
 import { FilterChips } from "@/components/FilterChips";
 import { EconomicsPanel } from "@/components/EconomicsPanel";
 import { ResultCard } from "@/components/ResultCard";
@@ -89,7 +91,7 @@ export default function App() {
       <Toaster position="bottom-center" />
       <Header onOpenEconomics={() => setEconomicsOpen(true)} />
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <section className="mx-auto max-w-3xl text-center">
           <h1 className="text-2xl sm:text-[1.75rem]">
             Which of today&apos;s auctions should you bid on?
@@ -98,12 +100,13 @@ export default function App() {
             Describe what you want in plain English. We parse it, price every match,
             and show the ceiling you shouldn&apos;t cross — with the reasoning behind it.
           </p>
-          <div className="mt-6">
+          <div className="relative mt-5">
+            <AuroraBackground />
             <SearchBar onSubmit={onSubmit} loading={loading} />
           </div>
         </section>
 
-        <section className="mt-10">
+        <section className="mt-6">
           {loading && <Loading />}
 
           {!loading && error && (
@@ -132,12 +135,9 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     {response.results.map((r, i) => (
-                      <ResultCard
-                        key={r.listing_id}
-                        result={r}
-                        rank={i + 1}
-                        onPlaceBid={onPlaceBid}
-                      />
+                      <BlurFade key={r.listing_id} delay={Math.min(i, 8) * 0.04}>
+                        <ResultCard result={r} rank={i + 1} onPlaceBid={onPlaceBid} />
+                      </BlurFade>
                     ))}
                   </div>
                 </>
@@ -149,8 +149,10 @@ export default function App() {
                     Matched, but we won&apos;t price these — too little comparable data
                   </div>
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    {lowConf.map((r) => (
-                      <LowConfidenceCard key={r.listing_id} result={r} />
+                    {lowConf.map((r, i) => (
+                      <BlurFade key={r.listing_id} delay={Math.min(i, 8) * 0.04}>
+                        <LowConfidenceCard result={r} />
+                      </BlurFade>
                     ))}
                   </div>
                 </div>
