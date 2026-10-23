@@ -11,7 +11,6 @@ import json
 import os
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import GradientBoostingRegressor
@@ -85,16 +84,16 @@ def main() -> None:
         "price_mae_lakh": round(price_mae_lakh, 4),
         "price_mape_pct": round(price_mape * 100, 2),
         "dts_mae_days": round(dts_mae, 2),
-        "n_train": int(len(x_train)),
-        "n_test": int(len(x_test)),
+        "n_train": len(x_train),
+        "n_test": len(x_test),
     }
     with open(os.path.join(MODELS_DIR, "metrics.json"), "w") as f:
         json.dump(metrics, f, indent=2)
 
-    print("=== Held-out metrics (n_test=%d) ===" % len(x_test))
+    print(f"=== Held-out metrics (n_test={len(x_test)}) ===")
     print(f"Retail price: MAE ₹{metrics['price_mae_rupees']:,.0f} ({metrics['price_mape_pct']}% MAPE)")
     print(f"Days to sell: MAE {metrics['dts_mae_days']} days")
-    print(f"\nWrote models/price.joblib, models/dts.joblib, models/metrics.json")
+    print("\nWrote models/price.joblib, models/dts.joblib, models/metrics.json")
 
 
 if __name__ == "__main__":

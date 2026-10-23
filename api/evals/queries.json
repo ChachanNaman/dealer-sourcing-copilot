@@ -1,0 +1,530 @@
+[
+  {
+    "query": "hatchbacks under 5 lakh under 60k km near Pune",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": 5.0,
+      "min_price_lakh": null,
+      "max_km": 60000,
+      "min_year": null,
+      "city": "Pune",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "SUVs under 12 lakh in Mumbai with automatic transmission",
+    "expected": {
+      "body_type": "suv",
+      "max_price_lakh": 12.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Mumbai",
+      "fuel": null,
+      "transmission": "automatic",
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "sedans between 6 and 10 lakh",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": 10.0,
+      "min_price_lakh": 6.0,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "diesel SUVs under 15L that I can flip in 3 weeks",
+    "expected": {
+      "body_type": "suv",
+      "max_price_lakh": 15.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": "diesel",
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": 21,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "need stock",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "Maruti Swift under 60k km",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 60000,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Maruti Swift"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "Honda City or Hyundai Verna sedans in Bengaluru",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Bengaluru",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Honda City",
+        "Hyundai Verna"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "grade A hatchbacks only",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": "A",
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "cars under 4 lakh in Nashik",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 4.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Nashik",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "manual petrol hatchbacks under 50k km",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 50000,
+      "min_year": null,
+      "city": null,
+      "fuel": "petrol",
+      "transmission": "manual",
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "anything grade B or better, under 8 lakh",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 8.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": "B",
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "2019 or newer sedans in Delhi",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": 2019,
+      "city": "Delhi",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "CNG hatchbacks under 6 lakh",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": 6.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": "cng",
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "automatic SUVs I can flip in 2 weeks",
+    "expected": {
+      "body_type": "suv",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": "automatic",
+      "grade_min": null,
+      "max_days_to_sell": 14,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "Tata Nexon or Maruti Brezza under 10 lakh",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 10.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Tata Nexon",
+        "Maruti Brezza"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "budget hatchbacks under 3.5 lakh",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": 3.5,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "premium sedans above 10 lakh in Hyderabad",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": null,
+      "min_price_lakh": 10.0,
+      "max_km": null,
+      "min_year": null,
+      "city": "Hyderabad",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "what's good",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "diesel sedans under 70000 km, grade A, in Pune, flip in 4 weeks",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 70000,
+      "min_year": null,
+      "city": "Pune",
+      "fuel": "diesel",
+      "transmission": null,
+      "grade_min": "A",
+      "max_days_to_sell": 28,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "Kia Seltos under 55k km",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 55000,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Kia Seltos"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "cheap hatchbacks, under 4 lakh, single owner only",
+    "expected": {
+      "body_type": "hatchback",
+      "max_price_lakh": 4.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "Hyundai Creta automatic under 16 lakh in Mumbai",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 16.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Mumbai",
+      "fuel": null,
+      "transmission": "automatic",
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Hyundai Creta"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "anything under 60k km that sells in 10 days",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 60000,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": 10,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "suvs in Bengaluru under 60k km grade B or better",
+    "expected": {
+      "body_type": "suv",
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 60000,
+      "min_year": null,
+      "city": "Bengaluru",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": "B",
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "show me something",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "Maruti Alto or Hyundai Grand i10 under 5 lakh",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 5.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Maruti Alto",
+        "Hyundai Grand i10"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "manual sedans under 9 lakh in Pune, flip in 3 weeks",
+    "expected": {
+      "body_type": "sedan",
+      "max_price_lakh": 9.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Pune",
+      "fuel": null,
+      "transmission": "manual",
+      "grade_min": null,
+      "max_days_to_sell": 21,
+      "models": [],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "grade A automatics under 70k km",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": 70000,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": "automatic",
+      "grade_min": "A",
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  },
+  {
+    "query": "Toyota Urban Cruiser or Mahindra XUV300 under 12 lakh in Hyderabad",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": 12.0,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": "Hyderabad",
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [
+        "Toyota Urban Cruiser",
+        "Mahindra XUV300"
+      ],
+      "clarification_needed": false
+    }
+  },
+  {
+    "query": "cars that move fast",
+    "expected": {
+      "body_type": null,
+      "max_price_lakh": null,
+      "min_price_lakh": null,
+      "max_km": null,
+      "min_year": null,
+      "city": null,
+      "fuel": null,
+      "transmission": null,
+      "grade_min": null,
+      "max_days_to_sell": null,
+      "models": [],
+      "clarification_needed": true
+    }
+  }
+]
