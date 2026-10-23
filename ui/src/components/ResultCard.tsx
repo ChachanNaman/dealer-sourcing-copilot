@@ -3,13 +3,12 @@ import { useState } from "react";
 import type { Result } from "@/lib/api";
 import { lakh, pct, rupeeFromLakh } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { WhyPanel } from "@/components/WhyPanel";
 import { cn } from "@/lib/utils";
 
-// The centrepiece, DESIGN.md §5.4. Static in Phase 6: the max-bid figure is
-// the largest element but stays plain here (NumberTicker lands in Phase 8), and
-// rank #1 gets no beam yet. "Why this number" expands a plain inline breakdown
-// whose arithmetic ties to max bid — Phase 7 replaces it with the animated
-// waterfall + comparables drawer.
+// The centrepiece, DESIGN.md §5.4. "Why this number" expands the WhyPanel
+// waterfall + comparables in place; the arithmetic ties to max_bid. Motion
+// (NumberTicker on the figure, BorderBeam on rank #1) lands in Phase 8.
 interface ResultCardProps {
   result: Result;
   rank: number;
@@ -100,9 +99,7 @@ export function ResultCard({ result, rank, onPlaceBid }: ResultCardProps) {
         </Button>
       </div>
 
-      {showWhy && result.breakdown && result.max_bid != null && (
-        <WhyBreakdown result={result} />
-      )}
+      {showWhy && <WhyPanel result={result} />}
     </article>
   );
 }
@@ -129,39 +126,6 @@ function Stat({ label, value }: { label: string; value: string }) {
       <div className="tabular mt-0.5 text-sm font-semibold text-[hsl(var(--foreground))]">
         {value}
       </div>
-    </div>
-  );
-}
-
-// Plain inline breakdown — Phase 6 placeholder for the Phase 7 animated
-// waterfall. The arithmetic ties exactly to max bid.
-function WhyBreakdown({ result }: { result: Result }) {
-  const b = result.breakdown!;
-  const rows = [
-    { label: "Predicted retail", value: b.predicted_retail, sign: "" },
-    { label: "Refurb", value: -b.refurb, sign: "−" },
-    { label: "Holding", value: -b.holding, sign: "−" },
-    { label: "Fees", value: -b.fees, sign: "−" },
-    { label: "Your target margin", value: -b.target_margin, sign: "−" },
-  ];
-  return (
-    <div className="mt-4 rounded-[calc(var(--radius)/1.6)] border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.4)] p-4">
-      <dl className="flex flex-col gap-1.5 text-sm">
-        {rows.map((r) => (
-          <div key={r.label} className="tabular flex items-center justify-between">
-            <dt className="text-[hsl(var(--muted-foreground))]">{r.label}</dt>
-            <dd className="text-[hsl(var(--foreground))]">
-              {r.sign}
-              {lakh(Math.abs(r.value))}
-            </dd>
-          </div>
-        ))}
-        <div className="my-1 border-t border-[hsl(var(--border))]" />
-        <div className="tabular flex items-center justify-between font-semibold">
-          <dt>Max bid</dt>
-          <dd>{lakh(result.max_bid!)}</dd>
-        </div>
-      </dl>
     </div>
   );
 }

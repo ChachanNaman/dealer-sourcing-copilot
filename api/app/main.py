@@ -119,14 +119,20 @@ def _to_result(p: pricing.Priced, row: dict) -> Result:
 @app.post("/recommend", response_model=RecommendResponse)
 def recommend(body: RecommendRequest) -> RecommendResponse:
     trace_id = trace.new_trace_id()
-    parsed = intent.parse_intent(body.query)
-    filters = parsed.filters
+    if body.filters is not None:
+        # Dealer edited a filter chip — use the filters as given, skip the LLM.
+        filters = body.filters
+        raw_llm_output = None
+    else:
+        parsed = intent.parse_intent(body.query)
+        filters = parsed.filters
+        raw_llm_output = parsed.raw_llm_output
 
     if filters.clarification_needed:
         trace.record(
             trace_id,
             query=body.query,
-            raw_llm_output=parsed.raw_llm_output,
+            raw_llm_output=raw_llm_output,
             filters=filters.model_dump(),
             clarification=filters.clarification_question,
             candidate_count=0,
@@ -159,16 +165,29 @@ def recommend(body: RecommendRequest) -> RecommendResponse:
     no_headroom = sum(
         1 for p in priced if p.confidence != "low" and (p.headroom is None or p.headroom <= 0)
     )
+    eligible = sum(
+        1 for p in priced if p.confidence != "low" and p.headroom is not None and p.headroom > 0
+    )
 
     ranked = ranking.rank(priced)
+    beyond_top = max(0, eligible - len(ranked))
 
     rows_by_id = {row["listing_id"]: row for row in match_rows}
     results = [_to_result(p, rows_by_id[p.listing_id]) for p in ranked]
 
+    # Surface a small sample of refused (low-confidence) cars so the UI can show
+    # the "not enough data" card — the honesty screen. The full count is in
+    # skipped.low_confidence.
+    low_conf_sample = [
+        _to_result(p, rows_by_id[p.listing_id])
+        for p in priced
+        if p.confidence == "low"
+    ][:4]
+
     trace.record(
         trace_id,
         query=body.query,
-        raw_llm_output=parsed.raw_llm_output,
+        raw_llm_output=raw_llm_output,
         filters=filters.model_dump(),
         candidate_count=len(matches),
         scoring_inputs=[
@@ -188,7 +207,12 @@ def recommend(body: RecommendRequest) -> RecommendResponse:
         filters=filters,
         clarification=None,
         results=results,
-        skipped=Skipped(low_confidence=low_confidence, no_headroom=no_headroom),
+        low_confidence_results=low_conf_sample,
+        skipped=Skipped(
+            low_confidence=low_confidence,
+            no_headroom=no_headroom,
+            beyond_top=beyond_top,
+        ),
     )
 
 

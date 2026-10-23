@@ -62,6 +62,7 @@ export interface Result {
 export interface Skipped {
   low_confidence: number;
   no_headroom: number;
+  beyond_top: number;
 }
 
 export interface RecommendResponse {
@@ -69,6 +70,7 @@ export interface RecommendResponse {
   filters: Filters;
   clarification: string | null;
   results: Result[];
+  low_confidence_results: Result[];
   skipped: Skipped;
 }
 
@@ -79,15 +81,22 @@ export const DEFAULT_CONFIG: Config = {
   grade_refurb: { A: 0.014, B: 0.032, C: 0.065 },
 };
 
+interface RecommendOptions {
+  config?: Config;
+  // When supplied, the server skips the LLM and uses these filters directly —
+  // used to re-rank after a dealer edits a filter chip.
+  filters?: Filters;
+  signal?: AbortSignal;
+}
+
 export async function recommend(
   query: string,
-  config: Config = DEFAULT_CONFIG,
-  signal?: AbortSignal,
+  { config = DEFAULT_CONFIG, filters, signal }: RecommendOptions = {},
 ): Promise<RecommendResponse> {
   const res = await fetch(`${BASE_URL}/recommend`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, config }),
+    body: JSON.stringify({ query, config, filters: filters ?? null }),
     signal,
   });
   if (!res.ok) {

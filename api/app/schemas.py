@@ -106,11 +106,15 @@ class Result(BaseModel):
 class Skipped(BaseModel):
     low_confidence: int
     no_headroom: int
+    beyond_top: int = 0  # eligible, worth bidding on, but past the top-N cap
 
 
 class RecommendRequest(BaseModel):
     query: str
     config: Config = Field(default_factory=Config)
+    # When present, these pre-parsed filters are used directly and the LLM is
+    # skipped — this is how the UI re-ranks after a dealer edits a filter chip.
+    filters: Filters | None = None
 
 
 class RecommendResponse(BaseModel):
@@ -118,6 +122,9 @@ class RecommendResponse(BaseModel):
     filters: Filters
     clarification: str | None
     results: list[Result]
+    # A sample of matched cars the system refused to price (confidence "low").
+    # Carries no bid figure — only the observed range and a reason.
+    low_confidence_results: list[Result] = Field(default_factory=list)
     skipped: Skipped
 
 

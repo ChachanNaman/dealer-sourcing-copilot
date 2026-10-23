@@ -4,6 +4,7 @@ import {
   DEFAULT_CONFIG,
   recommend,
   type Config,
+  type Filters,
   type RecommendResponse,
   type Result,
 } from "@/lib/api";
@@ -12,26 +13,39 @@ import { SearchBar } from "@/components/SearchBar";
 import { FilterChips } from "@/components/FilterChips";
 import { EconomicsPanel } from "@/components/EconomicsPanel";
 import { ResultCard } from "@/components/ResultCard";
+import { LowConfidenceCard } from "@/components/LowConfidenceCard";
+import { SkippedSummary } from "@/components/SkippedSummary";
 import { Loading } from "@/components/states/Loading";
+import { Clarify } from "@/components/states/Clarify";
+
+function withoutFilter(filters: Filters, key: string): Filters {
+  if (key.startsWith("model:")) {
+    const name = key.slice("model:".length);
+    return { ...filters, models: filters.models.filter((m) => m !== name) };
+  }
+  return { ...filters, [key]: null };
+}
 
 export default function App() {
   const [query, setQuery] = useState<string | null>(null);
   const [config, setConfig] = useState<Config>(DEFAULT_CONFIG);
+  const [activeFilters, setActiveFilters] = useState<Filters | null>(null);
   const [response, setResponse] = useState<RecommendResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [economicsOpen, setEconomicsOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
-  const run = useCallback(async (q: string, cfg: Config) => {
+  const run = useCallback(async (q: string, cfg: Config, filters?: Filters) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
     setError(null);
     try {
-      const res = await recommend(q, cfg, controller.signal);
+      const res = await recommend(q, { config: cfg, filters, signal: controller.signal });
       setResponse(res);
+      setActiveFilters(res.filters);
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
       setError("Couldn't reach the pricing API. Is it running on :8000?");
@@ -40,16 +54,26 @@ export default function App() {
     }
   }, []);
 
+  // Fresh query — let the LLM parse it.
   const onSubmit = (q: string) => {
     setQuery(q);
+    setActiveFilters(null);
     run(q, config);
   };
 
-  // Economics changes re-run the current query with the new config.
+  // Economics change — re-run the current query/filters with the new config.
   useEffect(() => {
-    if (query) run(query, config);
+    if (!query) return;
+    run(query, config, activeFilters ?? undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config]);
+
+  // Chip removal — edit the filters directly and re-rank (skips the LLM).
+  const onRemoveChip = (key: string) => {
+    const base = activeFilters ?? response?.filters;
+    if (!base || !query) return;
+    run(query, config, withoutFilter(base, key));
+  };
 
   const onPlaceBid = (r: Result) => {
     toast("Place bid is a demo stub", {
@@ -58,6 +82,7 @@ export default function App() {
   };
 
   const hasResults = response && response.results.length > 0;
+  const lowConf = response?.low_confidence_results ?? [];
 
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
@@ -87,31 +112,23 @@ export default function App() {
             </div>
           )}
 
-          {!loading && !error && response && (
-            <div className="flex flex-col gap-5">
-              <FilterChips filters={response.filters} />
+          {!loading && !error && response && response.clarification && query && (
+            <Clarify
+              question={response.clarification}
+              originalQuery={query}
+              onAnswer={onSubmit}
+              loading={loading}
+            />
+          )}
 
-              {response.clarification && (
-                <div className="mx-auto max-w-md rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-center">
-                  <p className="text-sm text-[hsl(var(--foreground))]">
-                    {response.clarification}
-                  </p>
-                </div>
-              )}
+          {!loading && !error && response && !response.clarification && (
+            <div className="flex flex-col gap-5">
+              <FilterChips filters={response.filters} onRemove={onRemoveChip} />
 
               {hasResults && (
                 <>
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
                     {response.results.length} cars worth bidding on
-                    {(response.skipped.low_confidence > 0 ||
-                      response.skipped.no_headroom > 0) && (
-                      <>
-                        {" · "}
-                        {response.skipped.no_headroom} skipped for no margin
-                        {response.skipped.low_confidence > 0 &&
-                          `, ${response.skipped.low_confidence} for thin data`}
-                      </>
-                    )}
                   </div>
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     {response.results.map((r, i) => (
@@ -126,11 +143,26 @@ export default function App() {
                 </>
               )}
 
-              {!hasResults && !response.clarification && (
+              {lowConf.length > 0 && (
+                <div className="flex flex-col gap-4">
+                  <div className="text-sm text-[hsl(var(--muted-foreground))]">
+                    Matched, but we won&apos;t price these — too little comparable data
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    {lowConf.map((r) => (
+                      <LowConfidenceCard key={r.listing_id} result={r} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!hasResults && lowConf.length === 0 && (
                 <div className="mx-auto max-w-md rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-center text-sm text-[hsl(var(--muted-foreground))]">
                   No cars matched with positive headroom at your current economics.
                 </div>
               )}
+
+              <SkippedSummary skipped={response.skipped} />
             </div>
           )}
         </section>
