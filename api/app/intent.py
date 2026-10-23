@@ -21,7 +21,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from app.schemas import Filters
+from app.schemas import CANONICAL_MODELS, Filters
 
 # Load api/.env explicitly so this works regardless of the server's or the
 # eval script's current working directory.
@@ -39,12 +39,6 @@ _PRICE_PATTERN = re.compile(r"price|bid|valuat|worth|\bcost\b", re.IGNORECASE)
 CITIES = ["Pune", "Mumbai", "Bengaluru", "Delhi", "Hyderabad", "Nashik"]
 BODY_TYPES = ["hatchback", "sedan", "suv"]
 FUELS = ["petrol", "diesel", "cng"]
-MODEL_NAMES = [
-    "Maruti Alto", "Maruti Swift", "Maruti Baleno", "Hyundai Grand i10",
-    "Hyundai i20", "Tata Tiago", "Maruti Dzire", "Honda Amaze", "Honda City",
-    "Hyundai Verna", "Skoda Rapid", "Hyundai Creta", "Kia Seltos",
-    "Tata Nexon", "Mahindra XUV300", "Maruti Brezza", "Toyota Urban Cruiser",
-]
 
 PROMPT_TEMPLATE = """You convert a used-car dealer's request into search filters.
 
@@ -55,6 +49,10 @@ RULES
 - Any field not stated -> null. Do not invent values.
 - "flip in N weeks" / "move fast" -> max_days_to_sell (weeks x 7).
 - Lakh is the unit. "5L", "5 lakh", "500000" all -> 5.0
+- "models" may ONLY contain values from this exact list — copy the string
+  exactly as written here, including the brand. Never invent a model name,
+  never drop the brand prefix:
+  {model_list}
 - Count how many fields above are non-null/non-empty (models counts as one
   field if the list is non-empty). If fewer than 2, the request is too vague
   to search — set clarification_needed=true and ask ONE short question.
@@ -91,6 +89,53 @@ def _clean_json_text(text: str) -> str:
         text = re.sub(r"^```(?:json)?\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
     return text.strip()
+
+
+def canonicalize_model(raw: str) -> str | None:
+    """Resolves a (possibly partial/mis-cased) model string to its exact
+    canonical name. Exact case-insensitive match first, then unique
+    case-insensitive substring match ("swift" -> "Maruti Swift"). Returns
+    None if nothing matches or more than one canonical name matches."""
+    raw_lower = raw.strip().lower()
+    for name in CANONICAL_MODELS:
+        if name.lower() == raw_lower:
+            return name
+    matches = [name for name in CANONICAL_MODELS if raw_lower in name.lower()]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def canonicalize_models(raw_models: list[str]) -> tuple[list[str], list[str]]:
+    """Maps each raw string to a canonical model name, deduplicated.
+    Returns (canonical_names, dropped_raw_strings) — dropped entries are
+    ambiguous or unrecognised and must never reach search."""
+    canonical: list[str] = []
+    dropped: list[str] = []
+    for raw in raw_models:
+        resolved = canonicalize_model(raw)
+        if resolved is None:
+            dropped.append(raw)
+        elif resolved not in canonical:
+            canonical.append(resolved)
+    return canonical, dropped
+
+
+def _model_short_form(name: str) -> str:
+    return name.split(" ", 1)[1] if " " in name else name
+
+
+_MODEL_SHORT_FORMS = [_model_short_form(name) for name in CANONICAL_MODELS]
+
+
+def _extract_model_candidates(q: str) -> list[str]:
+    """Finds brand-less mentions too: a dealer typing "swift" should match,
+    not just "maruti swift". Candidates are canonicalized by the caller."""
+    candidates = []
+    for short in _MODEL_SHORT_FORMS:
+        if re.search(r"\b" + re.escape(short.lower()) + r"\b", q):
+            candidates.append(short)
+    return candidates
 
 
 def _call_groq(prompt: str, api_key: str) -> str:
@@ -174,7 +219,10 @@ def keyword_fallback(query: str) -> Filters:
     max_price_lakh, min_price_lakh = _extract_price_bounds(q_no_km)
     max_days_to_sell = _weeks_to_days(q)
 
-    models = [m for m in MODEL_NAMES if m.lower() in q]
+    model_candidates = _extract_model_candidates(q)
+    models, dropped_models = canonicalize_models(model_candidates)
+    if dropped_models:
+        logger.warning("keyword_fallback dropped unresolved model mention(s): %r", dropped_models)
 
     meaningful_count = sum(
         1
@@ -218,8 +266,9 @@ def parse_intent(query: str) -> ParseResult:
             notice="No LLM API key configured — used keyword fallback.",
         )
 
+    model_list = "\n".join(f"  - {name}" for name in CANONICAL_MODELS)
     schema_json = json.dumps(Filters.model_json_schema(), indent=2)
-    prompt = PROMPT_TEMPLATE.format(schema=schema_json, user_query=query)
+    prompt = PROMPT_TEMPLATE.format(schema=schema_json, user_query=query, model_list=model_list)
 
     last_error: str | None = None
     last_raw: str | None = None
@@ -240,6 +289,15 @@ def parse_intent(query: str) -> ParseResult:
             except ValueError:
                 price_leak_detected = True
                 raise
+            if isinstance(raw.get("models"), list):
+                canonical_models, dropped = canonicalize_models(raw["models"])
+                if dropped:
+                    logger.warning(
+                        "LLM model name(s) could not be canonicalized and were dropped: %r (query=%r)",
+                        dropped,
+                        query,
+                    )
+                raw["models"] = canonical_models
             filters = Filters.model_validate(raw)
             return ParseResult(
                 filters=filters,
