@@ -22,19 +22,31 @@
    --border/--input rgb(226,232,240)#E2E8F0  hairline slate border
    --background     rgb(255,255,255) white
    --danger         rgb(193,0,7)    #C10007  their real error/alert red
-   --accent         rgb(239,110,11) #EF6E0B  CARS24 orange — present on the live
-                    LISTING page today; used ONLY as the warm CTA accent DESIGN.md
-                    §3 asks for, never as a brand-blue substitute. Flag for review.
+   --caution        rgb(239,110,11) #EF6E0B  CARS24 orange — present on the live
+                    LISTING page today; kept ONLY as the semantic --caution signal
+                    (thin margin / slow mover), never as brand or CTA. It is
+                    pre-rebrand, so pairing it with the blue as an accent would read
+                    as mid-rebrand — exactly what the "inspect live" rule prevents.
    --radius 16px, pills 9999px (36×), inner controls 8px — from both pages
    type scale 12/14/16/20/24/28/42-48px; weights 400/500/600 — headings are 600
    shadows: resting 0 1px 3px rgba(0,0,0,.1); raised card 0 4px 16px rgba(0,0,0,.15)
    font: live site uses GeistSans; DESIGN.md §3 mandates a system stack (no
          webfont round-trip), so we keep system — noted, not extracted-and-ignored.
 
+   --accent: blue family, = --primary (#4736FE). CARS24's rebrand replaced its
+   second brand hue with the one vivid blue, so there is no separate accent hue
+   to extract. CTAs use --primary directly; secondary actions use a tint or
+   low-opacity fill of it. --accent is kept as a token alias so components have a
+   stable name, but it never introduces a new colour.
+
+   TYPE RULE (followed everywhere): size carries hierarchy, not weight. Weight is
+   capped at 600 — cars24.com effectively never uses 700. The max-bid figure is
+   the largest element on a card but stays semibold (600), not bolder.
+
    --- INVENTED (not extractable from their site) ---
-   • Semantic product colors --profit/--caution/--unknown: DESIGN.md §3 defines
-     these as product-specific, explicitly "not from their site." --danger is the
-     exception — it reuses the real extracted red above.
+   • Semantic product colors --profit/--unknown: DESIGN.md §3 defines these as
+     product-specific, explicitly "not from their site." --danger reuses the real
+     extracted red, and --caution reuses the real extracted orange (both above).
    • The ENTIRE .dark palette: cars24.com ships no dark mode, so nothing dark
      could be extracted. All dark values are derived by hand from the light
      tokens (same hues, adjusted L/S for a dark surface).
@@ -59,13 +71,13 @@
     --primary:            245 99% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* warm CTA accent — extracted CARS24 orange (see provenance note) */
-    --accent:             26 91% 49%;
+    /* accent = primary (blue family); no separate accent hue post-rebrand */
+    --accent:             245 99% 60%;
     --accent-foreground:  0 0% 100%;
 
-    /* semantic — product-specific (INVENTED, except --danger = extracted red) */
+    /* semantic — product signals (INVENTED, except --danger / --caution = extracted) */
     --profit:   152 60% 38%;   /* positive margin / headroom — never on low conf */
-    --caution:  38 92% 50%;    /* thin margin / slow mover */
+    --caution:  26 91% 49%;    /* thin margin / slow mover — extracted CARS24 orange #EF6E0B */
     --danger:   358 100% 38%;  /* no headroom — extracted CARS24 red #C10007 */
     --unknown:  220 10% 60%;   /* low confidence — deliberately grey, never green */
 
@@ -85,10 +97,10 @@
     --ring:              245 99% 68%;
     --primary:            245 99% 68%;
     --primary-foreground: 223 40% 10%;
-    --accent:             26 91% 56%;
+    --accent:             245 99% 68%;
     --accent-foreground:  223 40% 10%;
     --profit:   152 55% 50%;
-    --caution:  38 92% 58%;
+    --caution:  26 91% 58%;
     --danger:   358 90% 62%;
     --unknown:  220 10% 55%;
   }
@@ -149,9 +161,47 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* TYPE RULE: size carries hierarchy, not weight. Headings — and the max-bid
+     figure, the largest element on a card — top out at 600. Never 700. */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+
   /* Non-negotiable per DESIGN.md §3: every number is tabular. */
   .tabular,
   [data-numeric] {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Range slider (components/ui/slider.tsx) — track fill is set inline; this
+     styles the thumb and track height to the token system. */
+  .dc-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.375rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    outline: none;
+  }
+  .dc-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 1.125rem;
+    width: 1.125rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--card));
+    box-shadow: var(--shadow-resting);
+  }
+  .dc-slider::-moz-range-thumb {
+    height: 1.125rem;
+    width: 1.125rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--card));
+    box-shadow: var(--shadow-resting);
+  }
+  .dc-slider:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.4);
   }
 }
