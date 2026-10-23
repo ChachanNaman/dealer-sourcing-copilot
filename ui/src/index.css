@@ -1,1 +1,157 @@
 @import "tailwindcss";
+
+/* ============================================================================
+   DESIGN TOKENS — provenance
+
+   Every brand value below was EXTRACTED from the live cars24.com on 2026-10-23
+   via scripts/extract-tokens.mjs → design-refs/cars24-tokens.json. No hex from
+   DESIGN.md's legacy counterexamples (#0059a3 / #f8931f / #EF6E0B / #465166)
+   was copied — those are pre-rebrand and were verified absent from the
+   rebranded home page.
+
+   Key finding: www.cars24.com HOME is rebranded (vivid blue-violet #4736FE,
+   cool slate neutrals, GeistSans). The /buy-used-cars-pune/ LISTING page is
+   still the OLD template and serves the legacy orange/blue — so its COLORS were
+   ignored; only its card geometry (radius, shadow) informed the shape tokens.
+
+   --- EXTRACTED from the live site (home page unless noted) ---
+   --primary        rgb(71,54,254)  #4736FE  the post-rebrand brighter blue
+   --foreground     rgb(15,23,43)   #0F172B  dominant dark navy text
+   --muted-fg       rgb(98,116,142) #62748E  secondary slate text
+   --muted          rgb(241,245,249)#F1F5F9  light slate surface
+   --border/--input rgb(226,232,240)#E2E8F0  hairline slate border
+   --background     rgb(255,255,255) white
+   --danger         rgb(193,0,7)    #C10007  their real error/alert red
+   --accent         rgb(239,110,11) #EF6E0B  CARS24 orange — present on the live
+                    LISTING page today; used ONLY as the warm CTA accent DESIGN.md
+                    §3 asks for, never as a brand-blue substitute. Flag for review.
+   --radius 16px, pills 9999px (36×), inner controls 8px — from both pages
+   type scale 12/14/16/20/24/28/42-48px; weights 400/500/600 — headings are 600
+   shadows: resting 0 1px 3px rgba(0,0,0,.1); raised card 0 4px 16px rgba(0,0,0,.15)
+   font: live site uses GeistSans; DESIGN.md §3 mandates a system stack (no
+         webfont round-trip), so we keep system — noted, not extracted-and-ignored.
+
+   --- INVENTED (not extractable from their site) ---
+   • Semantic product colors --profit/--caution/--unknown: DESIGN.md §3 defines
+     these as product-specific, explicitly "not from their site." --danger is the
+     exception — it reuses the real extracted red above.
+   • The ENTIRE .dark palette: cars24.com ships no dark mode, so nothing dark
+     could be extracted. All dark values are derived by hand from the light
+     tokens (same hues, adjusted L/S for a dark surface).
+   • --ring = --primary, --card = --background, --card-foreground = --foreground:
+     the live site draws no distinction, so these are deliberate aliases.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* neutrals — extracted slate family */
+    --background:        0 0% 100%;
+    --foreground:        223 48% 11%;
+    --card:              0 0% 100%;
+    --card-foreground:   223 48% 11%;
+    --muted:             210 40% 96%;
+    --muted-foreground:  215 18% 47%;
+    --border:            214 32% 91%;
+    --input:             214 32% 91%;
+    --ring:              245 99% 60%;
+
+    /* brand — extracted post-rebrand vivid blue */
+    --primary:            245 99% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    /* warm CTA accent — extracted CARS24 orange (see provenance note) */
+    --accent:             26 91% 49%;
+    --accent-foreground:  0 0% 100%;
+
+    /* semantic — product-specific (INVENTED, except --danger = extracted red) */
+    --profit:   152 60% 38%;   /* positive margin / headroom — never on low conf */
+    --caution:  38 92% 50%;    /* thin margin / slow mover */
+    --danger:   358 100% 38%;  /* no headroom — extracted CARS24 red #C10007 */
+    --unknown:  220 10% 60%;   /* low confidence — deliberately grey, never green */
+
+    --radius: 1rem;            /* 16px — real card radius from both pages */
+  }
+
+  .dark {
+    /* INVENTED — derived from the light tokens; no dark source on cars24.com */
+    --background:        223 40% 8%;
+    --foreground:        210 20% 96%;
+    --card:              223 34% 11%;
+    --card-foreground:   210 20% 96%;
+    --muted:             223 25% 16%;
+    --muted-foreground:  215 18% 65%;
+    --border:            223 25% 20%;
+    --input:             223 25% 20%;
+    --ring:              245 99% 68%;
+    --primary:            245 99% 68%;
+    --primary-foreground: 223 40% 10%;
+    --accent:             26 91% 56%;
+    --accent-foreground:  223 40% 10%;
+    --profit:   152 55% 50%;
+    --caution:  38 92% 58%;
+    --danger:   358 90% 62%;
+    --unknown:  220 10% 55%;
+  }
+}
+
+/* Map the shadcn-style HSL variables onto Tailwind v4's theme so utilities like
+   bg-background / text-foreground / border-border / text-primary resolve. */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-profit: hsl(var(--profit));
+  --color-caution: hsl(var(--caution));
+  --color-danger: hsl(var(--danger));
+  --color-unknown: hsl(var(--unknown));
+
+  --radius-token: var(--radius);
+
+  /* Extracted type scale */
+  --text-2xs: 0.75rem;   /* 12px */
+  --text-xs: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.25rem;    /* 20px */
+  --text-xl: 1.5rem;     /* 24px */
+  --text-2xl: 1.75rem;   /* 28px */
+  --text-hero: 3rem;     /* 48px */
+
+  /* Extracted shadows: resting + raised card */
+  --shadow-resting: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+  --shadow-soft: 0 4px 12px 0 rgba(127, 134, 148, 0.08);
+
+  /* DESIGN.md §3: system stack, no webfont (live site uses GeistSans) */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Non-negotiable per DESIGN.md §3: every number is tabular. */
+  .tabular,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+}
