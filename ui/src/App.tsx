@@ -9,6 +9,7 @@ import {
   type Result,
 } from "@/lib/api";
 import { Header } from "@/components/Header";
+import { HowItWorks } from "@/components/HowItWorks";
 import { SearchBar } from "@/components/SearchBar";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { FilterChips } from "@/components/FilterChips";
@@ -36,7 +37,20 @@ export default function App() {
   const [waking, setWaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [economicsOpen, setEconomicsOpen] = useState(false);
+  // Open the explainer automatically the first time someone visits.
+  const [howItWorksOpen, setHowItWorksOpen] = useState(
+    () => typeof localStorage !== "undefined" && !localStorage.getItem("seen-intro"),
+  );
   const abortRef = useRef<AbortController | null>(null);
+
+  const closeHowItWorks = useCallback(() => {
+    setHowItWorksOpen(false);
+    try {
+      localStorage.setItem("seen-intro", "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const run = useCallback(async (q: string, cfg: Config, filters?: Filters) => {
     abortRef.current?.abort();
@@ -98,7 +112,10 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
       <Toaster position="bottom-center" />
-      <Header onOpenEconomics={() => setEconomicsOpen(true)} />
+      <Header
+        onOpenEconomics={() => setEconomicsOpen(true)}
+        onOpenHowItWorks={() => setHowItWorksOpen(true)}
+      />
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <section className="mx-auto max-w-3xl text-center">
@@ -189,6 +206,8 @@ export default function App() {
         onClose={() => setEconomicsOpen(false)}
         onConfigChange={setConfig}
       />
+
+      <HowItWorks open={howItWorksOpen} onClose={closeHowItWorks} />
     </div>
   );
 }
