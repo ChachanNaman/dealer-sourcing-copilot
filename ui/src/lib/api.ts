@@ -87,22 +87,43 @@ interface RecommendOptions {
   // used to re-rank after a dealer edits a filter chip.
   filters?: Filters;
   signal?: AbortSignal;
+  // Called when a request fails transiently and we're about to retry — the
+  // free-tier API cold-starts (~50s) after idle and 502s until it's up.
+  onWaking?: () => void;
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function recommend(
   query: string,
-  { config = DEFAULT_CONFIG, filters, signal }: RecommendOptions = {},
+  { config = DEFAULT_CONFIG, filters, signal, onWaking }: RecommendOptions = {},
 ): Promise<RecommendResponse> {
-  const res = await fetch(`${BASE_URL}/recommend`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, config, filters: filters ?? null }),
-    signal,
-  });
-  if (!res.ok) {
-    throw new Error(`recommend failed: ${res.status} ${res.statusText}`);
+  const body = JSON.stringify({ query, config, filters: filters ?? null });
+  // Retry transient cold-start failures (network error / 502 / 503) for ~60s so
+  // the first request after the server sleeps succeeds instead of erroring.
+  const maxAttempts = 7;
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const res = await fetch(`${BASE_URL}/recommend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        signal,
+      });
+      if (res.status === 502 || res.status === 503) throw new Error("server waking");
+      if (!res.ok) throw new Error(`recommend failed: ${res.status} ${res.statusText}`);
+      return res.json();
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      lastErr = e;
+      if (attempt < maxAttempts - 1) {
+        onWaking?.();
+        await sleep(9000);
+      }
+    }
   }
-  return res.json();
+  throw lastErr instanceof Error ? lastErr : new Error("recommend failed");
 }
 
 export async function health(): Promise<boolean> {

@@ -33,6 +33,7 @@ export default function App() {
   const [activeFilters, setActiveFilters] = useState<Filters | null>(null);
   const [response, setResponse] = useState<RecommendResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [waking, setWaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [economicsOpen, setEconomicsOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -42,16 +43,25 @@ export default function App() {
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
+    setWaking(false);
     setError(null);
     try {
-      const res = await recommend(q, { config: cfg, filters, signal: controller.signal });
+      const res = await recommend(q, {
+        config: cfg,
+        filters,
+        signal: controller.signal,
+        onWaking: () => setWaking(true),
+      });
       setResponse(res);
       setActiveFilters(res.filters);
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
-      setError("Couldn't reach the pricing API. Is it running on :8000?");
+      setError("Couldn't reach the pricing API. Please try again in a moment.");
     } finally {
-      if (!controller.signal.aborted) setLoading(false);
+      if (!controller.signal.aborted) {
+        setLoading(false);
+        setWaking(false);
+      }
     }
   }, []);
 
@@ -105,6 +115,12 @@ export default function App() {
         </section>
 
         <section className="mt-6">
+          {loading && waking && (
+            <p className="mb-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
+              Waking the server — the free tier sleeps after idle, so the first
+              request can take up to a minute…
+            </p>
+          )}
           {loading && <Loading />}
 
           {!loading && error && (
