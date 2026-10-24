@@ -10,7 +10,6 @@ import {
 } from "@/lib/api";
 import { Header } from "@/components/Header";
 import { SearchBar } from "@/components/SearchBar";
-import { AuroraBackground } from "@/components/ui/aurora-background";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { FilterChips } from "@/components/FilterChips";
 import { EconomicsPanel } from "@/components/EconomicsPanel";
@@ -100,8 +99,7 @@ export default function App() {
             Describe what you want in plain English. We parse it, price every match,
             and show the ceiling you shouldn&apos;t cross — with the reasoning behind it.
           </p>
-          <div className="relative mt-5">
-            <AuroraBackground />
+          <div className="mt-5">
             <SearchBar onSubmit={onSubmit} loading={loading} />
           </div>
         </section>

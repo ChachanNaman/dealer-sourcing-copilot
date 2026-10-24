@@ -35,6 +35,10 @@ app.add_middleware(
 HERE = os.path.dirname(__file__)
 _inventory = pd.read_parquet(os.path.join(HERE, "..", "data", "inventory.parquet"))
 
+# Price the config-independent parts of the whole inventory once at startup, so
+# each request is a cheap filter + arithmetic (critical on the free-tier CPU).
+pricing.precompute(_inventory)
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
