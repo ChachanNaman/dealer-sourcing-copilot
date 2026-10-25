@@ -7,7 +7,7 @@ const STEPS = [
   {
     icon: Brain,
     title: "1 · You describe it, AI understands it",
-    body: "Type in plain English. An LLM turns your words into search filters — and only filters. It is never allowed to produce a price.",
+    body: "Type in plain English. An LLM turns your words into search filters, and only filters. It is never allowed to produce a price.",
   },
   {
     icon: Calculator,
@@ -17,12 +17,12 @@ const STEPS = [
   {
     icon: ShieldCheck,
     title: "3 · It refuses when unsure",
-    body: "If too few similar cars have sold before, it shows no price at all — just the observed range. A tool that admits what it doesn't know is one you can trust with real money.",
+    body: "If too few similar cars have sold before, it shows no price at all, just the observed range. A tool that admits what it doesn't know is one you can trust with real money.",
   },
   {
     icon: ScrollText,
     title: "4 · You stay in control",
-    body: "Set your own economics with the sliders and watch every bid re-rank live. Nothing is ever bid automatically — you confirm.",
+    body: "Set your own economics with the sliders and watch every bid re-rank live. Nothing is ever bid automatically. You confirm.",
   },
 ];
 
@@ -32,7 +32,7 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
       <div className="flex flex-col gap-6">
         <p className="text-sm text-[hsl(var(--muted-foreground))]">
           A sourcing co-pilot for used-car dealers. It finds auction cars that
-          match what you want and tells you the most you should bid on each —
+          match what you want and tells you the most you should bid on each,
           with the full reasoning behind every number.
         </p>
 
@@ -63,7 +63,7 @@ export function HowItWorks({ open, onClose }: { open: boolean; onClose: () => vo
         </div>
 
         <p className="text-xs text-[hsl(var(--muted-foreground))]">
-          All data is synthetic — no real inventory was used. Try a chip below
+          All data is synthetic. No real inventory was used. Try a chip below
           the search bar to see it in action; open "Why this number" on any card
           to see the full breakdown.
         </p>

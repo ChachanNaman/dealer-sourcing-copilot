@@ -12,9 +12,9 @@ export function SkippedSummary({ skipped }: { skipped: Skipped }) {
   const lines = [
     skipped.beyond_top > 0 && `${skipped.beyond_top} more priced below the top 20`,
     skipped.no_headroom > 0 &&
-      `${skipped.no_headroom} skipped — no margin at your current economics`,
+      `${skipped.no_headroom} skipped: no margin at your current economics`,
     skipped.low_confidence > 0 &&
-      `${skipped.low_confidence} skipped — not enough comparable data to price`,
+      `${skipped.low_confidence} skipped: not enough comparable data to price`,
   ].filter(Boolean) as string[];
 
   return (

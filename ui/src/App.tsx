@@ -124,7 +124,7 @@ export default function App() {
           </h1>
           <p className="mx-auto mt-2 max-w-xl text-sm text-[hsl(var(--muted-foreground))]">
             Describe what you want in plain English. We parse it, price every match,
-            and show the ceiling you shouldn&apos;t cross — with the reasoning behind it.
+            and show the ceiling you shouldn&apos;t cross, with the reasoning behind it.
           </p>
           <div className="mt-5">
             <SearchBar onSubmit={onSubmit} loading={loading} />
@@ -134,8 +134,8 @@ export default function App() {
         <section className="mt-6">
           {loading && waking && (
             <p className="mb-4 text-center text-sm text-[hsl(var(--muted-foreground))]">
-              Waking the server — the free tier sleeps after idle, so the first
-              request can take up to a minute…
+              Waking the server. The free tier sleeps after idle, so the first
+              request can take up to a minute.
             </p>
           )}
           {loading && <Loading />}
@@ -177,7 +177,7 @@ export default function App() {
               {lowConf.length > 0 && (
                 <div className="flex flex-col gap-4">
                   <div className="text-sm text-[hsl(var(--muted-foreground))]">
-                    Matched, but we won&apos;t price these — too little comparable data
+                    Matched, but we won&apos;t price these: too little comparable data
                   </div>
                   <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     {lowConf.map((r, i) => (

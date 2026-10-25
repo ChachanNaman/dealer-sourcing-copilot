@@ -33,7 +33,7 @@ export function LowConfidenceCard({ result }: { result: Result }) {
       <p className="mt-4 text-sm text-[hsl(var(--muted-foreground))]">
         Only {result.comparables.length} comparable{" "}
         {result.comparables.length === 1 ? "sale" : "sales"} on record. Not enough to
-        price this confidently — so we won&apos;t show a bid.
+        price this confidently, so we won&apos;t show a bid.
       </p>
 
       {lo != null && hi != null && (
